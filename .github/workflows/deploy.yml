@@ -1,0 +1,40 @@
+name: Deploy DeepSeek
+
+on:
+  push:
+    # branches:
+    #   - main
+    paths:
+      - ".github/workflows/deploy.yml"
+      - "/**" # Visas mapes un visi faili
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup SSH Agent
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.TEST_SERVER_SSH_PRIVATE_KEY }}
+
+      - name: Start SSH tunnel
+        run: |
+          # Izveidojam tuneli un paturām to atvērtu ar -N
+          ssh -o StrictHostKeyChecking=no -fNL 2375:localhost:2375 ${{ secrets.TEST_SERVER_USER }}@${{ secrets.TEST_SERVER_IP }}
+          # Pagaidām 2 sekundes, lai tunelis paspēj inicializēties
+          sleep 2
+
+      - name: Run Docker Compose
+        env:
+          DOCKER_HOST: tcp://localhost:2375
+          # Šis nodrošina, ka mainīgais no GitHub Secrets nonāk konteinerā
+          TEST_TUNNEL_TOKEN: ${{ secrets.TEST_TUNNEL_TOKEN }}
+        run: |
+          # Ja tavā docker-compose.yml ir rakstīts ${TEST_TUNNEL_TOKEN}, 
+          # tad docker-compose to nolasīs automātiski no vides (env)
+          docker compose up -d --build --remove-orphans
+          docker image prune -f
