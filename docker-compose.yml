@@ -4,25 +4,38 @@ services:
   backend:
     build: ./backend
     restart: unless-stopped
+    container_name: backend
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    networks:
+      - cloudflare-tunnel
 
   nginx:
     image: nginx:alpine
     restart: unless-stopped
+    container_name: nginx
     volumes:
       - ./frontend:/usr/share/nginx/html:ro
       - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
       - ./nginx/mime.types:/etc/nginx/mime.types:ro
     depends_on:
       - backend
+    networks:
+      - cloudflare-tunnel
 
   cloudflared:
     image: cloudflare/cloudflared:latest
+    container_name: cloudflared
     restart: unless-stopped
     command: tunnel run
     environment:
       - TUNNEL_TOKEN=${TEST_TUNNEL_TOKEN}
     depends_on:
       - nginx
-      
+    networks:
+      - cloudflare-tunnel
+
+networks:
+  cloudflare-tunnel:
+    driver: bridge
+    name: cloudflare-tunnel

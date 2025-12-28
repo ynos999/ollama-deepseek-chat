@@ -62,3 +62,7 @@ TEST_SERVER_USER
 TEST_SERVER_IP
 TEST_TUNNEL_TOKEN - from your cloudflare
 ```
+
+```
+Edit nginx.conf, because I have cloudflare Flexible
+```
