@@ -14,13 +14,11 @@ services:
       - cloudflare-tunnel
 
   nginx:
-    image: nginx:alpine
-    restart: unless-stopped
+    build: 
+      context: .
+      dockerfile: ./nginx/Dockerfile
     container_name: nginx
-    volumes:
-      - ./frontend:/usr/share/nginx/html:ro
-      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
-      - ./nginx/mime.types:/etc/nginx/mime.types:ro
+    restart: unless-stopped
     depends_on:
       - backend
     networks:
