@@ -71,6 +71,17 @@ runcmd:
   - cat /home/${ssh_user}/.ssh/github_actions.pub >> /home/${ssh_user}/.ssh/authorized_keys
   - chmod 600 /home/${ssh_user}/.ssh/authorized_keys
 
+
+  # Konfigurējam Ollama, lai tā būtu pieejama Docker konteineriem
+  - |
+    mkdir -p /etc/systemd/system/ollama.service.d
+    cat <<EOF > /etc/systemd/system/ollama.service.d/override.conf
+    [Service]
+    Environment="OLLAMA_HOST=0.0.0.0"
+    Environment="OLLAMA_ORIGINS=*"
+    EOF
+    systemctl daemon-reload
+
   # Instalē Ollama
   - curl -fsSL https://ollama.com/install.sh | sh
   - sleep 5

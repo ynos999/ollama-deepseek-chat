@@ -7,6 +7,9 @@ services:
     container_name: backend
     extra_hosts:
       - "host.docker.internal:host-gateway"
+    environment:
+      # Šeit mēs pasakām Python kodam, kur ir Ollama
+      - OLLAMA_URL=http://host.docker.internal:11434/api/generate
     networks:
       - cloudflare-tunnel
 

@@ -2,7 +2,10 @@
 # Hetzner cloud + Terraform (Ubuntu 22.04 server with docker & ollama) 
 # Docker compose and workflows create web page with Deepseek model (deepseek-coder:6.7b)
 ```
-
+### Terraform: create server
+### Cloud-init: prepare Ollama + Custom Model.
+### Docker Compose: put together Nginx, Python and Cloudflare.
+### GitHub Actions: automates code updates via SSH tunnel.
 ```
 ### 1. Create file terraform.tfvars and add 
 ```

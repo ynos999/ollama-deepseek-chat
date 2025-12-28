@@ -1,74 +1,105 @@
 <!DOCTYPE html>
-<html>
+<html lang="lv">
 <head>
     <meta charset="utf-8">
-    <title>DeepSeek Chat</title>
+    <title>DeepSeek-Coder AI</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <style>
-        body { font-family: Arial; background:#111; color:#eee; max-width: 800px; margin: 0 auto; padding: 20px; }
-        textarea { width:100%; height:100px; background: #222; color: #fff; border: 1px solid #444; padding: 10px; box-sizing: border-box; }
-        button { padding:10px 20px; margin-top:10px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 4px; }
-        button:disabled { background: #555; }
-        #output { background:#222; padding:20px; margin-top: 20px; border-radius: 8px; line-height: 1.6; }
-        /* Koda bloku stils Markdown saturam */
-        pre { background: #333; padding: 10px; overflow-x: auto; border-radius: 4px; }
-        code { font-family: 'Courier New', Courier, monospace; }
+        /* Iepriekšējie stili paliek tie paši */
+        body { font-family: 'Segoe UI', sans-serif; background:#0f0f0f; color:#e0e0e0; max-width: 900px; margin: 0 auto; padding: 20px; }
+        .chat-container { display: flex; flex-direction: column; gap: 20px; }
+        textarea { width:100%; height:120px; background: #1a1a1a; color: #fff; border: 1px solid #333; padding: 15px; border-radius: 8px; font-size: 16px; }
+        button#sendBtn { padding:12px 24px; cursor: pointer; background: #007bff; color: white; border: none; border-radius: 6px; font-weight: bold; align-self: flex-end; }
+        #output { background:#1a1a1a; padding:25px; border-radius: 10px; line-height: 1.7; border: 1px solid #222; }
+
+        /* Koda bloka konteiners pogas pozicionēšanai */
+        .code-container { position: relative; margin: 15px 0; }
+        pre { background: #2d2d2d; padding: 15px; overflow-x: auto; border-radius: 6px; border: 1px solid #444; margin: 0; }
+        
+        .copy-btn {
+            position: absolute; top: 8px; right: 8px;
+            background: #444; color: #eee; border: none; border-radius: 4px;
+            padding: 4px 8px; font-size: 12px; cursor: pointer; opacity: 0.7;
+            transition: 0.2s;
+        }
+        .copy-btn:hover { opacity: 1; background: #555; }
+        .copy-btn.copied { background: #28a745; color: white; }
     </style>
 </head>
 <body>
-    <h1>DeepSeek-Coder Chat</h1>
-
-    <textarea id="input" placeholder="Uzraksti uzdevumu vai jautājumu..."></textarea>
-    <br>
-    <button onclick="send()">Sūtīt</button>
-
-    <div id="output"></div>
+    <h1>DeepSeek-Coder AI</h1>
+    <div class="chat-container">
+        <textarea id="input" placeholder="Ielīmē kodu vai uzdod jautājumu... (Ctrl + Enter)"></textarea>
+        <button id="sendBtn" onclick="send()">Sūtīt</button>
+        <div>
+            <div id="status" style="font-size: 0.9em; color: #888; margin-bottom: 5px;"></div>
+            <div id="output"></div>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <script>
-    async function send() {
-        const inputField = document.getElementById("input");
         const output = document.getElementById("output");
-        const button = document.querySelector("button");
-        const message = inputField.value;
         
-        if (!message.trim()) return;
+        // Pielāgojam marked renderētāju, lai ieliktu koda blokus konteinerā
+        const renderer = new marked.Renderer();
+        renderer.code = function(code, language) {
+            return `
+                <div class="code-container">
+                    <button class="copy-btn" onclick="copyCode(this)">Copy</button>
+                    <pre><code class="language-${language}">${code}</code></pre>
+                </div>`;
+        };
+        marked.setOptions({ renderer: renderer, breaks: true, gfm: true });
 
-        // Sagatavojam saskatni
-        output.innerHTML = "<em>Domāju...</em>";
-        button.disabled = true;
-        let text = "";
-
-        try {
-            const res = await fetch("/api/chat", {
-                method: "POST",
-                headers: {"Content-Type": "application/json"},
-                body: JSON.stringify({ message: message })
-            });
-
-            if (!res.ok) throw new Error("Servera kļūda");
-
-            const reader = res.body.getReader();
-            const decoder = new TextDecoder();
-            output.innerHTML = ""; 
-
-            while (true) {
-                const { value, done } = await reader.read();
-                if (done) break;
-                
-                text += decoder.decode(value);
-                // marked.parse pārvērš Markdown par HTML
-                output.innerHTML = marked.parse(text);
-                
-                // Automātiska skrollēšana
-                window.scrollTo(0, document.body.scrollHeight);
-            }
-        } catch (error) {
-            output.innerHTML = `<span style="color:red">Kļūda: ${error.message}</span>`;
-        } finally {
-            button.disabled = false;
+        async function copyCode(btn) {
+            const code = btn.nextElementSibling.innerText;
+            await navigator.clipboard.writeText(code);
+            btn.innerText = "Copied!";
+            btn.classList.add("copied");
+            setTimeout(() => {
+                btn.innerText = "Copy";
+                btn.classList.remove("copied");
+            }, 2000);
         }
-    }
+
+        async function send() {
+            const inputField = document.getElementById("input");
+            const sendBtn = document.getElementById("sendBtn");
+            const status = document.getElementById("status");
+            const message = inputField.value.trim();
+
+            if (!message || sendBtn.disabled) return;
+
+            let fullText = "";
+            output.innerHTML = "";
+            status.innerText = "DeepSeek domā...";
+            sendBtn.disabled = true;
+
+            try {
+                const res = await fetch("/api/chat", {
+                    method: "POST",
+                    headers: {"Content-Type": "application/json"},
+                    body: JSON.stringify({ message: message })
+                });
+
+                const reader = res.body.getReader();
+                const decoder = new TextDecoder();
+
+                while (true) {
+                    const { value, done } = await reader.read();
+                    if (done) break;
+                    fullText += decoder.decode(value, { stream: true });
+                    output.innerHTML = marked.parse(fullText);
+                }
+                status.innerText = "Gatavs";
+            } catch (error) {
+                output.innerHTML = `<span style="color:red">Kļūda: ${error.message}</span>`;
+            } finally {
+                sendBtn.disabled = false;
+            }
+        }
     </script>
 </body>
 </html>
