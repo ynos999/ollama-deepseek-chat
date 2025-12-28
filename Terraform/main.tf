@@ -14,7 +14,7 @@ provider "hcloud" {
 # New server
 resource "hcloud_server" "deepseek" {
   name        = "deepseek"
-  server_type = "CPX21"
+  server_type = "CX33"
   image       = "ubuntu-22.04"
   location    = "hel1"
 
