@@ -68,3 +68,15 @@ TEST_TUNNEL_TOKEN - from your cloudflare
 ```
 Edit nginx.conf, because I have cloudflare Flexible
 ```
+
+```
+ollama pull deepseek-coder:6.7b
+ollama list
+cat <<EOF > Modelfile
+FROM deepseek-coder:6.7b
+PARAMETER num_ctx 4096
+PARAMETER num_thread 4
+EOF
+ollama create deepseek-custom -f Modelfile
+ollama list
+```

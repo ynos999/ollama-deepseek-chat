@@ -71,7 +71,6 @@ runcmd:
   - cat /home/${ssh_user}/.ssh/github_actions.pub >> /home/${ssh_user}/.ssh/authorized_keys
   - chmod 600 /home/${ssh_user}/.ssh/authorized_keys
 
-
   # Konfigurējam Ollama, lai tā būtu pieejama Docker konteineriem
   - |
     mkdir -p /etc/systemd/system/ollama.service.d
@@ -82,26 +81,41 @@ runcmd:
     EOF
     systemctl daemon-reload
 
-  # Instalē Ollama
+  # 1. Instalē Ollama
   - curl -fsSL https://ollama.com/install.sh | sh
-  - sleep 5
-  - ollama pull deepseek-coder:6.7b
-  - sudo systemctl enable ollama
 
-  # Izveido Modelfile ar taviem parametriem
+  # 2. Konfigurējam Ollama (Host un Origins)
   - |
-    cat <<EOF > /home/${ssh_user}/Modelfile
+    mkdir -p /etc/systemd/system/ollama.service.d
+    cat <<EOF > /etc/systemd/system/ollama.service.d/override.conf
+    [Service]
+    Environment="OLLAMA_HOST=0.0.0.0"
+    Environment="OLLAMA_ORIGINS=*"
+    EOF
+    systemctl daemon-reload
+    systemctl restart ollama
+
+  # 3. Pagaidām API gatavību
+  - |
+    until curl -s http://localhost:11434/api/tags > /dev/null; do
+      sleep 3
+    done
+
+  # 4. Velkam bāzes modeli
+  - /usr/local/bin/ollama pull deepseek-coder:6.7b
+
+  # 5. Izveidojam Modelfile (izmantojam /tmp, lai nav permisiju problēmu)
+  - |
+    cat <<EOF > /tmp/Modelfile
     FROM deepseek-coder:6.7b
     PARAMETER num_ctx 4096
     PARAMETER num_thread 4
     EOF
-    chown ${ssh_user}:${ssh_user} /home/${ssh_user}/Modelfile
 
-  # Izveido pielāgotu modeli un izdzēš pagaidu failu
-  - sudo -u ${ssh_user} ollama create deepseek-custom -f /home/${ssh_user}/Modelfile
-  - rm /home/${ssh_user}/Modelfile
-
-  - sudo systemctl restart ollama
-
-  # Restart SSH, lai pārliecinātos, ka key-based login strādā
+  # 6. Izveidojam pielāgoto modeli
+  - /usr/local/bin/ollama create deepseek-custom -f /tmp/Modelfile
+  
+  # 7. Tīrīšana un finiša darbi
+  - rm /tmp/Modelfile
+  - systemctl restart ollama
   - systemctl reload ssh
