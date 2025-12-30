@@ -14,9 +14,9 @@ provider "hcloud" {
 # New server
 resource "hcloud_server" "deepseek" {
   name        = "deepseek"
-  server_type = "CX33"
+  server_type = "cx33"
   image       = "ubuntu-22.04"
-  location    = "hel1"
+  location    = "nbg1"
 
   # izmanto jau esošu SSH key Hetzner panelī
   ssh_keys = ["Edijs"]
