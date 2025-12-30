@@ -70,6 +70,8 @@ Edit nginx.conf, because I have cloudflare Flexible
 ```
 
 ```
+IF cloud-init don't install deepseek-coder:6.7b:
+
 ollama pull deepseek-coder:6.7b
 ollama list
 cat <<EOF > Modelfile
