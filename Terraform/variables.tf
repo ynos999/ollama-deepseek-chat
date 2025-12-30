@@ -14,8 +14,3 @@ variable "ssh_public_key" {
   type        = string
 }
 
-variable "cloudflare_token" {
-  description = "Cloudflare Tocken"
-  type        = string
-  sensitive   = true # Pievieno šo, lai tokens neparādītos logos
-}

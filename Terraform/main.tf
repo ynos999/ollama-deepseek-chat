@@ -29,7 +29,6 @@ resource "hcloud_server" "deepseek" {
   user_data = templatefile("cloud-init/deepseek.yml", {
     ssh_user       = var.ssh_user
     ssh_public_key = file(var.ssh_public_key)
-    cloudflare_token = var.cloudflare_token
   })
 }
 
