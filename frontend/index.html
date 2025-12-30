@@ -2,90 +2,91 @@
 <html lang="lv">
 <head>
     <meta charset="utf-8">
-    <title>DeepSeek-Coder AI</title>
+    <title>DeepSeek AI Chat</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+    
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background:#0f0f0f; color:#e0e0e0; max-width: 900px; margin: 0 auto; padding: 20px; }
-        h1 { text-align: center; color: #007bff; }
+        body { font-family: 'Segoe UI', system-ui, sans-serif; background:#0d1117; color:#c9d1d9; max-width: 1000px; margin: 0 auto; padding: 20px; }
         
-        .chat-container { display: flex; flex-direction: column; height: 90vh; }
-        
-        /* Sarunas vēsture ar skrituli */
+        /* Čata vēstures logs */
         #chat-history { 
-            flex: 1;
+            height: 65vh;
             overflow-y: auto;
             display: flex; 
             flex-direction: column; 
-            gap: 15px; 
-            padding: 10px;
-            border: 1px solid #222;
-            border-radius: 10px;
-            background: #141414;
-            margin-bottom: 15px;
+            gap: 20px; 
+            padding: 20px;
+            border: 1px solid #30363d;
+            border-radius: 12px;
+            background: #161b22;
+            margin-bottom: 20px;
+            scroll-behavior: smooth;
         }
 
-        /* Ziņu dizains */
-        .message { padding: 12px 18px; border-radius: 15px; line-height: 1.6; max-width: 85%; word-wrap: break-word; }
+        /* Ziņu burbuļi */
+        .message { padding: 14px 20px; border-radius: 15px; line-height: 1.6; max-width: 85%; position: relative; }
         
         .user-message { 
-            background: #007bff; 
+            background: #238636; 
             color: white; 
             align-self: flex-end; 
             border-bottom-right-radius: 2px;
         }
         
         .ai-message { 
-            background: #2a2a2a; 
-            color: #e0e0e0; 
+            background: #21262d; 
+            color: #c9d1d9; 
             align-self: flex-start; 
             border-bottom-left-radius: 2px;
-            border: 1px solid #333;
+            border: 1px solid #30363d;
         }
 
         /* Ievades zona */
-        .input-area { display: flex; flex-direction: column; gap: 10px; }
+        .input-container { display: flex; flex-direction: column; gap: 10px; }
         textarea { 
-            width: 100%; height: 80px; background: #1a1a1a; color: #fff; 
-            border: 1px solid #333; padding: 12px; border-radius: 8px; 
+            width: 100%; height: 100px; background: #0d1117; color: #fff; 
+            border: 1px solid #30363d; padding: 15px; border-radius: 8px; 
             font-size: 16px; resize: none; box-sizing: border-box;
         }
-        textarea:focus { border-color: #007bff; outline: none; }
+        textarea:focus { border-color: #58a6ff; outline: none; }
         
         button#sendBtn { 
-            padding: 12px 24px; cursor: pointer; background: #007bff; 
+            padding: 12px 28px; cursor: pointer; background: #238636; 
             color: white; border: none; border-radius: 6px; 
-            font-weight: bold; align-self: flex-end; transition: 0.3s;
+            font-weight: bold; align-self: flex-end; transition: 0.2s;
         }
-        button#sendBtn:disabled { background: #444; cursor: not-allowed; }
+        button#sendBtn:hover { background: #2ea043; }
+        button#sendBtn:disabled { background: #484f58; cursor: not-allowed; }
 
-        /* Koda bloku stils */
-        .code-container { position: relative; margin: 10px 0; background: #000; border-radius: 5px; }
-        pre { padding: 15px; overflow-x: auto; margin: 0; }
-        code { font-family: 'Consolas', monospace; color: #f8f8f2; }
+        /* Koda bloku dizains */
+        .code-container { position: relative; margin: 15px 0; border-radius: 6px; overflow: hidden; }
+        pre { margin: 0; padding: 15px; background: #0d1117 !important; font-size: 14px; }
         .copy-btn { 
-            position: absolute; top: 5px; right: 5px; 
-            background: #444; color: #eee; border: none; 
-            border-radius: 4px; padding: 3px 8px; font-size: 11px; 
-            cursor: pointer; opacity: 0.7; 
+            position: absolute; top: 8px; right: 8px; 
+            background: #30363d; color: #c9d1d9; border: 1px solid #8b949e; 
+            border-radius: 4px; padding: 4px 8px; font-size: 11px; 
+            cursor: pointer; opacity: 0.8; z-index: 10;
         }
-        .copy-btn:hover { opacity: 1; }
+        .copy-btn:hover { opacity: 1; background: #484f58; }
     </style>
 </head>
 <body>
-    <h1>DeepSeek AI Chat</h1>
+    <h2 style="text-align: center;">DeepSeek-Coder 6.7B</h2>
     
-    <div class="chat-container">
-        <div id="chat-history"></div>
-
-        <div id="status" style="font-size: 0.8em; color: #888; margin-bottom: 5px;"></div>
-        
-        <div class="input-area">
-            <textarea id="input" placeholder="Ieraksti savu jautājumu šeit... (Ctrl + Enter)"></textarea>
-            <button id="sendBtn" onclick="send()">Sūtīt</button>
-        </div>
+    <div id="chat-history">
+        <div class="message ai-message">Sveiki! Es esmu tavs DeepSeek AI asistents. Kā es varu palīdzēt ar kodu šodien?</div>
     </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <div class="input-container">
+        <div id="status" style="font-size: 0.85em; color: #8b949e;"></div>
+        <textarea id="input" placeholder="Ielīmē kodu vai uzdod jautājumu... (Ctrl + Enter)"></textarea>
+        <button id="sendBtn" onclick="send()">Sūtīt jautājumu</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/11.1.1/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
 
     <script>
         const chatHistory = document.getElementById("chat-history");
@@ -93,17 +94,19 @@
         const sendBtn = document.getElementById("sendBtn");
         const status = document.getElementById("status");
 
-        // Marked konfigurācija koda blokiem
+        // 1. Konfigurējam marked.js kopā ar highlight.js
         const renderer = new marked.Renderer();
-        renderer.code = (code, lang) => {
+        renderer.code = function(code, language) {
+            const validLang = !!(language && hljs.getLanguage(language));
+            const highlighted = validLang ? hljs.highlight(code, { language }).value : hljs.highlightAuto(code).value;
             return `<div class="code-container">
                         <button class="copy-btn" onclick="copyCode(this)">Copy</button>
-                        <pre><code>${code}</code></pre>
+                        <pre><code class="hljs ${language}">${highlighted}</code></pre>
                     </div>`;
         };
-        marked.setOptions({ renderer: renderer, breaks: true });
+        marked.setOptions({ renderer: renderer, breaks: true, gfm: true });
 
-        // Ctrl + Enter saīsne sūtīšanai
+        // 2. Ctrl + Enter saīsne
         inputField.addEventListener("keydown", (e) => {
             if (e.ctrlKey && e.key === "Enter") {
                 e.preventDefault();
@@ -111,6 +114,7 @@
             }
         });
 
+        // 3. Koda kopēšanas funkcija
         async function copyCode(btn) {
             const code = btn.nextElementSibling.innerText;
             await navigator.clipboard.writeText(code);
@@ -118,26 +122,26 @@
             setTimeout(() => btn.innerText = "Copy", 2000);
         }
 
+        // 4. Galvenā sūtīšanas funkcija
         async function send() {
             const message = inputField.value.trim();
             if (!message || sendBtn.disabled) return;
 
-            // 1. Pievienojam LIETOTĀJA ziņu
+            // Pievienojam lietotāja ziņu
             const userDiv = document.createElement("div");
             userDiv.className = "message user-message";
             userDiv.innerText = message;
             chatHistory.appendChild(userDiv);
 
-            // 2. Izveidojam tukšu burbuli AI atbildei
+            // Izveidojam tukšu AI ziņas burbuli
             const aiDiv = document.createElement("div");
             aiDiv.className = "message ai-message";
-            aiDiv.innerHTML = "<em>DeepSeek domā...</em>";
+            aiDiv.innerHTML = "<em>DeepSeek raksta...</em>";
             chatHistory.appendChild(aiDiv);
             
-            // Notīrām ievadi un skrolējam uz leju
             inputField.value = "";
-            status.innerText = "Savienojas ar serveri...";
             sendBtn.disabled = true;
+            status.innerText = "Notiek ģenerēšana...";
             chatHistory.scrollTop = chatHistory.scrollHeight;
 
             let fullText = "";
@@ -149,26 +153,31 @@
                     body: JSON.stringify({ message: message })
                 });
 
-                if (!res.ok) throw new Error("Servera kļūda");
+                if (!res.ok) throw new Error("Serveris neatbild. Pārbaudi Ollama.");
 
                 const reader = res.body.getReader();
                 const decoder = new TextDecoder();
-                aiDiv.innerHTML = ""; // Notīrām "domā..." tekstu
+                aiDiv.innerHTML = ""; // Notīrām statusu
 
                 while (true) {
                     const { value, done } = await reader.read();
                     if (done) break;
                     
-                    fullText += decoder.decode(value, { stream: true });
-                    // Atjaunojam TIKAI pēdējo AI burbuli
+                    const chunk = decoder.decode(value, { stream: true });
+                    
+                    // Pārbaude: ja chunk ir JSON, izvelkam tekstu. 
+                    // Ja tavs backend sūta tīru tekstu, šis strādās automātiski.
+                    fullText += chunk;
+                    
+                    // Renderējam Markdown uzreiz
                     aiDiv.innerHTML = marked.parse(fullText);
                     
-                    // Turam skatu uz jaunāko tekstu
+                    // Skrolējam uz leju, kamēr parādās teksts
                     chatHistory.scrollTop = chatHistory.scrollHeight;
                 }
                 status.innerText = "Gatavs";
             } catch (error) {
-                aiDiv.innerHTML = `<span style="color:#ff4444">Kļūda: ${error.message}</span>`;
+                aiDiv.innerHTML = `<span style="color:#ff7b72">Kļūda: ${error.message}</span>`;
                 status.innerText = "Kļūda";
             } finally {
                 sendBtn.disabled = false;
